@@ -64,3 +64,32 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+## Laravel API GATEWAY - IP MANAGEMENT
+
+This is a **Laravel API-only GATEWAY project** for IP MANAGEMENT.  
+It includes:
+
+- Default **Client** (`CLIENT001` + dynamic token)  
+- Default **Admin User** (`admin@gmail.com`)  
+- Fully API-ready for React frontend or other clients  
+
+---
+
+## 1. Prerequisites
+
+Make sure you have installed:
+
+- PHP >= 8.1  
+- Composer  
+- MySQL / PostgreSQL (or your preferred DB)  
+- Node.js & npm (optional, if using frontend)  
+
+---
+
+## 2. Clone / Pull Project
+
+```bash
+git clone <your-repo-url> erp-laravel-api
+cd erp-laravel-api
