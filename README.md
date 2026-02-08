@@ -83,8 +83,7 @@ Make sure you have installed:
 
 - PHP >= 8.1  
 - Composer  
-- MySQL / PostgreSQL (or your preferred DB)  
-- Node.js & npm (optional, if using frontend)  
+- MySQL
 
 ---
 
@@ -93,3 +92,33 @@ Make sure you have installed:
 ```bash
 git clone <your-repo-url> erp-laravel-api
 cd erp-laravel-api
+```
+---
+
+## 3. Install Dependencies
+
+```bash
+composer install
+```
+
+## 4. Copy Environment File
+
+```bash
+cp .env.example .env
+```
+Update .env with your database credentials:
+
+```bash
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=erp_microservice
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+## 5. Generate Application Key
+
+```bash
+php artisan key:generate
+```
