@@ -21,6 +21,7 @@ class RegisterUser
             'name'=>$dto->name,
             'email'=>$dto->email,
             'password'=>Hash::make($dto->password),
+            'permission'=>$dto->permission,
         ]);
 
         $token = JWTAuth::fromUser($user);

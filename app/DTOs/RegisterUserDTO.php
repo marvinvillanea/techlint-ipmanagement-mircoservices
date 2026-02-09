@@ -9,6 +9,8 @@ class RegisterUserDTO
         public readonly string $name,
         public readonly string $email,
         public readonly string $password,
+        public readonly string $permission,
+
     ) {}
 
     // Magdagdag tayo ng static method para safe ang pag-map
@@ -18,6 +20,7 @@ class RegisterUserDTO
             name: $validatedData['name'],
             email: $validatedData['email'],
             password: $validatedData['password'],
+            permission: $validatedData['permission'],
         );
     }
 }
