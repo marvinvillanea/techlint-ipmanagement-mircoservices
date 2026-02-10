@@ -2,9 +2,11 @@
 
 namespace App\Actions;
 
+use App\Jobs\SaveApiLogJob;
 use App\Repositories\ModulesRepository;
 use App\Repositories\IdempotencyRepository;
-use App\Jobs\SendToMicroserviceJob;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class ProcessAPI
 {
@@ -28,27 +30,25 @@ class ProcessAPI
         $module = $checkModule->first();
 
         // 👉 Idempotency check
-        if (
-            $module->unique_field != "" &&
-            $request->has($module->unique_field) &&
-            $action === "add"
-        ) {
-            $id = $module->name . $request->input($module->unique_field);
+        // if (
+        //     $module->unique_field != "" &&
+        //     $request->has($module->unique_field) &&
+        //     $action === "add"
+        // ) {
+        //     $id = $module->name . $request->input($module->unique_field);
 
-            if ($this->Idompotency->exists($id)) {
-                return [
-                    "data" => [],
-                    "msg" => "Duplicate Data Unable to proceed!",
-                    "code" => 201
-                ];
-            }
-        }
+        //     if ($this->Idompotency->exists($id)) {
+        //         return [
+        //             "data" => [],
+        //             "msg" => "Duplicate Data Unable to proceed!",
+        //             "code" => 201
+        //         ];
+        //     }
+        // }
 
 
 
-        $this->SenttoJob($request, $controller, $action);
-        
-
+        $this->Action($request, $module, $controller, $action);
 
         return [
             "data" =>  $request->all() ,
@@ -58,34 +58,72 @@ class ProcessAPI
     }
 
 
-    public function SenttoJob($request, $controller, $action):void
+    public function Action($request, $module, $controller, $action): void
     {
-        $jwtToken = $request->bearerToken();
-        $requestData = $request->all(); // just input
-        $userAgent = $request->userAgent();
-        $ip = $request->ip();
-        $fullUrl = $request->fullUrl();
-        $clientTOken = $request->header('X-Client-Token');
+        $table = $module->table; // dynamic table
+        $primaryKey = $module->primary_id; // dynamic primary key field
+        $payload = $request->all(); // user input
+        $latestData = '';
+        // idempotency / unique field already handled in execute()
 
-        SendToMicroserviceJob::dispatch(
-            url: $_ENV["APP_URL_MICROSERVICES"].'/api/v1/process/'.$controller.'/'.$action,
-            payload: [
-                'user' => auth()->user()?->only(['id', 'name', 'email']),
-                'data' => $requestData,
-            ],
-            headers: [
-                'X-Request-ID' => uniqid(),
-                'X-Service' => 'ERP',
-                'X-Client-Token' => $clientTOken,
-            ],
-            jwtToken: $jwtToken,
-            meta: [
-                'ip' => $ip,
-                'user_agent' => $userAgent,
-                'url' => $fullUrl,
-                'method' => 'PROCESS MICROSERVICES '. $action
-            ]
-        );
+        // 🔑 Handle special fields like password
+        if (isset($payload['password'])) {
+            $payload['password'] = Hash::make($payload["password"]);
+        }
+        
+        switch (strtolower($action)) {
+            case 'add':
+                // Insert new record
+                \DB::table($table)->insert($payload);
+                break;
+
+            case 'edit':
+                // Update existing record if primary key exists
+                if (isset($payload[$primaryKey])) {
+                    \DB::table($table)
+                        ->where($primaryKey, $payload[$primaryKey])
+                        ->update($payload);
+
+                        // fetch the latest state
+                    $latestData = \DB::table($table)
+                        ->where($primaryKey, $payload[$primaryKey])
+                        ->first();
+                }
+                break;
+
+            case 'delete':
+                // Delete record if primary key exists
+                if (isset($payload[$primaryKey])) {
+                    // Instead of deleting, just mark as deleted
+                    \DB::table($table)
+                        ->where($primaryKey, $payload[$primaryKey])
+                        ->update(['deleted' => 1]);
+
+                    $latestData = \DB::table($table)
+                    ->where($primaryKey, $payload[$primaryKey])
+                    ->first();
+                }
+                break;
+
+            default:
+                throw new \Exception("Unknown action: $action");
+        }
+
+
+        $logData = [
+            'ip' =>  $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'method' =>  $request->method(),
+            'url' =>  $request->fullUrl(),
+            'request_body' =>   json_encode($payload),
+            'response_body' =>  json_encode($latestData),
+            'status_code' => 200,
+            'user_id' => optional(auth()->user())->id,
+        ];
+
+        SaveApiLogJob::dispatch($logData);
+
     }
+
 
 }
