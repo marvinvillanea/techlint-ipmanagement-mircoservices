@@ -27,7 +27,7 @@ class ProcessAPIController extends Controller
             }
 
 
-            $result = $this->ProcessAPI->execute($request->all(), $controller, $action);
+            $result = $this->ProcessAPI->execute($request, $controller, $action);
 
             return ApiResponse::success($result["data"], $result["msg"], $result["code"]);
 

@@ -16,11 +16,8 @@ class IdempotencyRepository
      */
     public function exists(string $uniqueid) :bool
     {
-        try {
-            Idompotency::create([ 'uniqueid' => $uniqueid]);
-            return false;
-        } catch (QueryException $e) {
-            return true;
-        }
+        return Idompotency::firstOrCreate(
+            ['uniqueid' => $uniqueid]
+        )->wasRecentlyCreated === false;
     }
 }

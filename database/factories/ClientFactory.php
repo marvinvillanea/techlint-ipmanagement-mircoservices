@@ -18,7 +18,8 @@ class ClientFactory extends Factory
     {
         return [
             'name' => '000IP-TECHLINT000',       // random company name
-            'client_token' => Str::random(60),    
+            // 'client_token' => Str::random(60),    
+            'client_token' => 'St0uVEktCxF8kr3nRkeHCqFotKBLoqqGhMhRGvwiIA0DJcJeEj2VnauzjvzI',    
             'created_at' => now(),
             'updated_at' => now(),
         ];

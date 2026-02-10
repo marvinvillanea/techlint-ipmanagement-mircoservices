@@ -8,9 +8,10 @@ class Idompotency extends Model
 {
     //
 
-    protected $fillable = [
-        'uniqueid'
-    ];
+    protected $table = 'idompotencies';
 
+    protected $fillable = ['uniqueid'];
+
+    public $timestamps = false;
     
 }
